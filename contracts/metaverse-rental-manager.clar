@@ -107,3 +107,87 @@
 (define-read-only (get-contract-owner)
     CONTRACT_OWNER
 )
+
+;; Enhanced Features
+(define-data-var contract-version (string-ascii 16) "v1.0.0")
+(define-data-var maintenance-mode bool false)
+
+;; Enhanced Maps
+(define-map user-profiles principal {
+    created-at: uint,
+    last-activity: uint,
+    reputation-score: uint
+})
+
+(define-map feature-flags (string-ascii 32) bool)
+
+;; Enhanced Functions
+(define-public (set-maintenance-mode (enabled bool))
+    (begin
+        (asserts! (is-eq tx-sender CONTRACT_OWNER) ERR_UNAUTHORIZED)
+        (var-set maintenance-mode enabled)
+        (log-operation (if enabled "maintenance-on" "maintenance-off"))
+        (ok enabled)
+    )
+)
+
+(define-public (create-user-profile)
+    (let ((user tx-sender))
+        (asserts! (not (var-get maintenance-mode)) ERR_INVALID_PARAMS)
+        (asserts! (is-none (map-get? user-profiles user)) ERR_INVALID_PARAMS)
+        (map-set user-profiles user {
+            created-at: block-height,
+            last-activity: block-height,
+            reputation-score: u0
+        })
+        (log-operation "profile-created")
+        (ok true)
+    )
+)
+
+(define-public (update-user-activity)
+    (let ((user tx-sender))
+        (asserts! (not (var-get maintenance-mode)) ERR_INVALID_PARAMS)
+        (match (map-get? user-profiles user)
+            profile (begin
+                (map-set user-profiles user (merge profile { last-activity: block-height }))
+                (log-operation "activity-updated")
+                (ok true)
+            )
+            ERR_NOT_FOUND
+        )
+    )
+)
+
+(define-public (set-feature-flag (flag (string-ascii 32)) (enabled bool))
+    (begin
+        (asserts! (is-authorized tx-sender) ERR_UNAUTHORIZED)
+        (map-set feature-flags flag enabled)
+        (log-operation "feature-flag-set")
+        (ok true)
+    )
+)
+
+;; Enhanced Read-only Functions
+(define-read-only (get-contract-version)
+    (var-get contract-version)
+)
+
+(define-read-only (is-maintenance-mode)
+    (var-get maintenance-mode)
+)
+
+(define-read-only (get-user-profile (user principal))
+    (map-get? user-profiles user)
+)
+
+(define-read-only (get-feature-flag (flag (string-ascii 32)))
+    (default-to false (map-get? feature-flags flag))
+)
+
+(define-read-only (get-user-reputation (user principal))
+    (match (map-get? user-profiles user)
+        profile (get reputation-score profile)
+        u0
+    )
+)
