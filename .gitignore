@@ -1,0 +1,30 @@
+# Environment
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+npm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Clarinet
+.clarinet/cache/
+.clarinet/tmp/
+
+# Build outputs
+dist/
+build/
+
+# Logs
+*.log
+logs/

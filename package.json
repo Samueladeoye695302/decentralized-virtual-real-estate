@@ -1,0 +1,26 @@
+{
+  "name": "decentralized-virtual-real-estate",
+  "version": "1.0.0",
+  "description": "Blockchain project: decentralized-virtual-real-estate",
+  "main": "index.js",
+  "scripts": {
+    "test": "clarinet test",
+    "check": "clarinet check",
+    "console": "clarinet console",
+    "deploy:testnet": "clarinet publish --testnet",
+    "deploy:mainnet": "clarinet publish --mainnet",
+    "lint": "deno lint tests/",
+    "format": "deno fmt tests/"
+  },
+  "keywords": [
+    "blockchain",
+    "stacks",
+    "clarity",
+    "smart-contracts"
+  ],
+  "author": "Samueladeoye695302",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^18.0.0"
+  }
+}
