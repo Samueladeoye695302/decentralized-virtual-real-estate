@@ -1,0 +1,16 @@
+[project]
+name = "decentralized-virtual-real-estate"
+description = "Blockchain project: decentralized-virtual-real-estate"
+authors = ["Samueladeoye695302 <>"]
+telemetry = false
+cache_dir = ".clarinet"
+requirements = []
+
+[contracts.virtual-land-registry]
+path = "contracts/virtual-land-registry.clar"
+depends_on = []
+
+[contracts.metaverse-rental-manager]
+path = "contracts/metaverse-rental-manager.clar"
+depends_on = []
+
