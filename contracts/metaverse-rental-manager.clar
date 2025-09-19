@@ -191,3 +191,86 @@
         u0
     )
 )
+
+;; Analytics and Monitoring
+(define-data-var daily-active-users uint u0)
+(define-data-var last-reset-block uint u0)
+
+(define-map daily-stats uint {
+    active-users: uint,
+    total-operations: uint,
+    block-height: uint
+})
+
+(define-map user-activity-streak principal uint)
+
+;; Monitoring Functions
+(define-private (update-daily-stats)
+    (let ((current-block block-height)
+          (last-reset (var-get last-reset-block))
+          (blocks-per-day u144)) ;; Approximately 144 blocks per day on Stacks
+        (if (>= (- current-block last-reset) blocks-per-day)
+            (begin
+                (map-set daily-stats last-reset {
+                    active-users: (var-get daily-active-users),
+                    total-operations: (var-get total-operations),
+                    block-height: last-reset
+                })
+                (var-set daily-active-users u0)
+                (var-set last-reset-block current-block)
+                true
+            )
+            false
+        )
+    )
+)
+
+(define-private (increment-user-streak (user principal))
+    (let ((current-streak (default-to u0 (map-get? user-activity-streak user))))
+        (map-set user-activity-streak user (+ current-streak u1))
+        true
+    )
+)
+
+(define-public (record-user-activity (user principal))
+    (begin
+        (asserts! (is-authorized tx-sender) ERR_UNAUTHORIZED)
+        (update-daily-stats)
+        (increment-user-streak user)
+        (var-set daily-active-users (+ (var-get daily-active-users) u1))
+        (log-operation "user-activity-recorded")
+        (ok true)
+    )
+)
+
+(define-public (reset-daily-stats)
+    (begin
+        (asserts! (is-eq tx-sender CONTRACT_OWNER) ERR_UNAUTHORIZED)
+        (update-daily-stats)
+        (log-operation "daily-stats-reset")
+        (ok true)
+    )
+)
+
+;; Analytics Read-only Functions
+(define-read-only (get-daily-active-users)
+    (var-get daily-active-users)
+)
+
+(define-read-only (get-daily-stats (day uint))
+    (map-get? daily-stats day)
+)
+
+(define-read-only (get-user-activity-streak (user principal))
+    (default-to u0 (map-get? user-activity-streak user))
+)
+
+(define-read-only (get-analytics-summary)
+    {
+        daily-active-users: (var-get daily-active-users),
+        total-operations: (var-get total-operations),
+        contract-version: (var-get contract-version),
+        maintenance-mode: (var-get maintenance-mode),
+        current-block: block-height
+    }
+)
