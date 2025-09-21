@@ -32,7 +32,7 @@
         (map-set operation-log operation-id {
             operator: tx-sender,
             action: action,
-            timestamp: block-height
+            timestamp: (+ block-height u0)
         })
         (var-set total-operations (+ operation-id u1))
         operation-id
